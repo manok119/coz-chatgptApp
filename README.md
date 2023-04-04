@@ -47,7 +47,7 @@ endpoints:
     PUT - https://22didjxofh.execute-api.ap-northeast-2.com/dev.chat
 
 ```
-이 과정까지 진행하면 aws 계정에 람다2개, api-gateway2개, sqs, dynamodb가 생성이 됩니다. 
+이 과정까지 진행하면 aws 계정에 람다4개, api-gateway2개, sqs, dynamodb가 생성이 됩니다. 
 
 ### 프론트엔드 준비(/coz-chatgpt-frontend)
 1. 환경변수 입력
