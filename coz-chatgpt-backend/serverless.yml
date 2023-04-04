@@ -1,0 +1,170 @@
+service: chatgptapp
+app: chatgptapp
+provider:
+  name: aws
+  runtime: nodejs16.x
+#이 프로젝트의 Lambda 함수에서 사용할 IAM Role, 정의는 아래 DefaultRole
+  iam:
+    role: DefaultRole
+  httpApi:
+    cors: true
+  region: ap-northeast-2
+  versionFunctions: false
+#스택 명  
+  stackName: serverless-chatgptapp-backend
+#Lambda의 타임아웃 시간, 여기 설정하면 모든 Lambda에 공통 적용
+  timeout: 10
+  environment:
+    version: ${opt:ver, "1"}
+    tersion: ${opt:ter, "1"}
+    OPENAPI_APIKEY: # Fill-Me-In
+    api_gateway_id:
+      Ref: HttpApi
+    socket_api_gateway_id:
+      Ref: WebsocketsApi
+    region: ap-northeast-2
+    response_sqs_url:
+       Ref: ResponseQueue
+  deploymentBucket:
+    name: ${aws:accountId}-${self:app}
+    maxPreviousDeploymentArtifacts: 5
+    blockPublicAccess: true
+  deploymentPrefix: ${self:app}
+resources:
+  Resources:
+    ResponseQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: chatgptapp-response-queue
+        VisibilityTimeout: 300
+#람다를 위한 IAM Role 정의
+    DefaultRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: chatgptapp-lambda-role
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action: sts:AssumeRole
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+        Policies:
+          - PolicyName: myPolicyName
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - sqs:*
+                    - logs:*
+                    - execute-api:*
+                  Resource: '*'
+    #DynamoDB 테이블, 채팅메세지
+    messageTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: chatgptapp-chat-messages
+        AttributeDefinitions:
+          - AttributeName: room_id 
+            AttributeType: S
+          - AttributeName: timestamp
+            AttributeType: N
+        KeySchema:
+          - AttributeName: room_id
+            KeyType: HASH
+          - AttributeName: timestamp
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+    #DynamoDB 테이블, 유저 목록
+    userListTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: chatgptapp-userlist
+        AttributeDefinitions:
+          - AttributeName: connection_id 
+            AttributeType: S
+          - AttributeName: room_id
+            AttributeType: S
+          - AttributeName: user_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: connection_id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        GlobalSecondaryIndexes:
+          - IndexName: room_id-user_id-index
+            KeySchema:
+              - AttributeName: room_id
+                KeyType: HASH
+              - AttributeName: user_id
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+    ApigatewayParms:
+      Type: "AWS::SSM::Parameter"
+      Properties:
+        Name: '/chatgptapp/api_gateway_id'
+        Type: String
+        Value:
+          Ref: HttpApi
+        Description: ApiGatewayId
+    SocketApigatewayParms:
+      Type: "AWS::SSM::Parameter"
+      Properties:
+        Name: '/chatgptapp/socket_api_gateway_id'
+        Type: String
+        Value:
+          "Fn::Join":
+            - ","
+            - - Ref: WebsocketsApi
+        Description: WebsocketsApi
+#Serverless 플러그인
+plugins:
+#Deploymenet 버킷 자동 생성 플러그인
+  - serverless-deployment-bucket
+
+
+#람다 함수들
+functions:
+  chat_onConnect:
+    name: 'chat_onConnect'
+    handler: src/lambda/chat/onConnect.handler
+    events:
+      - websocket:
+          route: $connect
+
+  chat_onDisconnect:
+    name: 'chat_onDisconnect'
+    handler: src/lambda/chat/onDisconnect.handler
+    events:
+      - websocket:
+          route: $disconnect
+  chat_get:
+    name: 'chat_get'
+    handler: src/lambda/chat/get.handler
+    events:
+      - httpApi:
+          path: /dev/chat
+          method: get
+  chat_put:
+    name: 'chatgpt_put'
+    handler: src/lambda/chat/put.handler
+    events:
+      - httpApi:
+          path: /dev/chat
+          method: put
+  get_chatgpt_response:
+    name: chat_get_chatgpt_response
+    handler: src/lambda/chat/processQueue.handler
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - ResponseQueue
+              - Arn
+          batchSize: 1
+    timeout: 300
