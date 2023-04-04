@@ -18,10 +18,10 @@ aws configure list
 --------------------------
 Name                    Value             Type    Location
       ----                    -----             ----    --------
-   profile                <not set>             None    None
+   profile                manok119             None    None
 access_key     ****************ABCD  shared-credentials-file    
 secret_key     ****************ABCD  shared-credentials-file    
-    region                us-west-2             env    AWS_DEFAULT_REGION
+    region                us-northeast-2             env    AWS_DEFAULT_REGION
 ```
 
 3. OPENAI API 키 발급
