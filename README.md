@@ -27,9 +27,9 @@ secret_key     ****************ABCD  shared-credentials-file
 3. OPENAI API 키 발급
 
 ### 백앤드 세팅  및 실행(/coz-chatgpt-backend)
-1. 발급된 api키를 백엔드 폴더의 serverless.yaml 파일 20번째 줄 OPENAPI_APIKEY: # 체워넣으세요.
+1. 발급된 api키를 백엔드 폴더의 serverless.yaml 파일 20번째 줄 OPENAPI_APIKEY: # 채워넣으세요.
 ```
-OPENAPI_APIKEY: # 체워넣으세요.
+OPENAPI_APIKEY: # 채워넣으세요.
 ```
 2. 실행
 ```
@@ -55,7 +55,8 @@ NODE_PATH=src
 REACT_APP_API_PATH=22didjxofh
 REACT_APP_SOCKET_API_PATH=15qleu33
 ```
-2. npm start로 실행 
+2. 리액스 환경에 필요한 모듈 설치 
+3. npm start로 실행 
 
     http://locahost:3000 확인
 
