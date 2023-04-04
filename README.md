@@ -12,6 +12,11 @@ export AWS_ACCESS_KEY_ID= #입력
 export AWS_SECRET_ACCESS_KEY= #입력
 export AWS_DEFAULT_REGION=us-northeast-2
 export AWS_PROFILE= # 입력
+4. serverless 설치
+```
+$ npm install -g serverless
+``` 
+
 
 # configure를 확인합니다
 aws configure list
