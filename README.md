@@ -12,11 +12,6 @@ export AWS_ACCESS_KEY_ID= #입력
 export AWS_SECRET_ACCESS_KEY= #입력
 export AWS_DEFAULT_REGION=us-northeast-2
 export AWS_PROFILE= # 입력
-4. serverless 설치
-```
-$ npm install -g serverless
-``` 
-
 
 # configure를 확인합니다
 aws configure list
@@ -28,8 +23,11 @@ access_key     ****************ABCD  shared-credentials-file
 secret_key     ****************ABCD  shared-credentials-file    
     region                us-northeast-2             env    AWS_DEFAULT_REGION
 ```
-
-3. OPENAI API 키 발급
+4. serverless 설치
+```
+$ npm install -g serverless
+``` 
+5. OPENAI API 키 발급
 
 ### 백앤드 세팅  및 실행(/coz-chatgpt-backend)
 1. 발급된 api키를 백엔드 폴더의 serverless.yaml 파일 20번째 줄 OPENAPI_APIKEY: # 채워넣으세요.
